@@ -11,8 +11,9 @@ using std::vector;
 using std::pair;
 typedef pair<int, int> coord;
 
-//This function will take a string of
-void pointSetter(vector<pair<coord, coord> > & thePoints, string & theString)
+//This function will take a string of characters and will create a list of coordinate pairs for line creating
+//This will operate with predetermined meanings for the characters in the sequence
+void pointSetter(vector<pair<coord, coord> > & thePoints, string & theString, int anglesize)
 {
 
 }
@@ -51,23 +52,34 @@ void ruleParser(string & rules, vector<pair<char, string> > &  ruleList)
 //Rules are parsed into key-value pairs
 string buildString(string & start, vector<pair<char, string> > & rules, int & iterations)
 {
+	string output, built;
 	if (iterations == 0)
 		return start;
-
-
+	for (int i = 0; i < start.size(); i++)
+	{
+		int transform = findinVector(rules, start[i]);
+		output += rules[transform].second;
+	}
+	iterations--;
+	built = buildString(output, rules, iterations);
+	return built;
 }
 
 int main(int argc, char *argv[])
 {
-	string exrule = "X:YZ;Y:XZ;Z:Z";
-	vector<pair<char, string> > output;
-	ruleParser(exrule, output);
-	if (!output.empty())
+	string exrule = "X:YY;Y:ZXY;Z:Z";
+	string start = "X";
+	vector<pair<char, string> > ruleList;
+	ruleParser(exrule, ruleList);
+	if (!ruleList.empty())
 	{
-		for (int i = 0; i < output.size(); i ++)
+		for (int i = 0; i < ruleList.size(); i++)
 		{
-			std::cout << output[i].first << " -> " << output[i].second << "\n";
+			std::cout << ruleList[i].first << " -> " << ruleList[i].second << "\n";
 		}
 	}
+	int iterations = 2;
+	string output = buildString(start, ruleList, iterations);
+	std::cout << output << "\n";
 	return 0;
 }
