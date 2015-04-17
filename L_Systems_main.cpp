@@ -11,7 +11,7 @@
 #include <cmath>		//std::abs, std::round
 #include <stack>		//std::stack
 #include <gl\glut.h>
-#define pi 3.14159265
+//This is the number of radians in one degree
 #define degree 0.0174532925
 
 using std::string;
@@ -20,46 +20,42 @@ using std::pair;
 typedef pair<float, float> coord;
 vector<pair<coord, coord> > points;
 
-//Finds the index of a coordinate in a vector
-int findinVector(vector<float> & theStuff, float & value)
-{
-	for (int i = 0; i < theStuff.size(); i++)
-	{
-		if (theStuff[i] == value)
-			return i;
-	}
-	return -1;
-}
-
 //Centering Function. Finds the coordinates that are topmmost, bottommost, leftmost, and rightmost
 //Uses these values to create an equation that will extend the widest axis to the sides of the window
 //Should take into account if the window isn't square
 void justifyPoints(vector<pair<coord, coord> > & thePoints, pair<coord,coord> newCorners)
 {
-	vector<float> theX;
-	vector<float> theY;
+	float bigx =	 -100000000000000;
+	float bigy =	 -100000000000000;
+	float smallx =	  100000000000000;
+	float smally =	  100000000000000;
 	for (int i = 0; i < thePoints.size(); i++)
 	{
 		//X coords in first and second
-		if (findinVector(theX, thePoints[i].first.first) == -1)
-			theX.push_back(thePoints[i].first.first);
-		if (findinVector(theX, thePoints[i].first.second) == -1)
-			theX.push_back(thePoints[i].first.second);
-
+		if (thePoints[i].first.first < smallx)
+			smallx = thePoints[i].first.first;
+		if (thePoints[i].first.first > bigx)
+			bigx = thePoints[i].first.first;
+		if (thePoints[i].second.first < smallx)
+			smallx = thePoints[i].second.first;
+		if (thePoints[i].second.first > bigx)
+			bigx = thePoints[i].second.first;
+		
 		//Y coords in first and second
-		if (findinVector(theY, thePoints[i].first.second) == -1)
-			theY.push_back(thePoints[i].first.second);
-		if (findinVector(theY, thePoints[i].second.second) == -1)
-			theY.push_back(thePoints[i].second.second);
+		if (thePoints[i].first.second < smally)
+			smally = thePoints[i].first.second;
+		if (thePoints[i].first.second > bigy)
+			bigy = thePoints[i].first.second;
+		if (thePoints[i].second.second < smally)
+			smally = thePoints[i].second.second;
+		if (thePoints[i].second.second > bigy)
+			bigy = thePoints[i].second.second;
 	}
-	//Sort x coordinates and y coordinates to find the biggest and smallest of both
-	std::sort(theX.begin(), theX.end());
-	std::sort(theY.begin(), theY.end());
 	
 	//Find the magnitudes of the edges of the old box and the new box
 	float xmag, ymag, boxmag;
-	xmag = std::abs(theX[0] - theX[theX.size() - 1]);
-	ymag = std::abs(theY[0] - theY[theY.size() - 1]);
+	xmag = std::abs(bigx - smallx);
+	ymag = std::abs(bigy - smally);
 	boxmag = std::abs(newCorners.first.first - newCorners.second.first);
 	
 	//This is the size of the line length increment
@@ -67,8 +63,8 @@ void justifyPoints(vector<pair<coord, coord> > & thePoints, pair<coord,coord> ne
 
 	//Find the centers of the old box and the new box
 	pair<float, float> oldCenter, newCenter, offset;
-	oldCenter.first = xmag / 2 + theX[0];
-	oldCenter.second = ymag / 2 + theY[0];
+	oldCenter.first = xmag / 2 + smallx;
+	oldCenter.second = ymag / 2 + smally;
 	newCenter.first = boxmag / 2 + std::min(newCorners.first.first, newCorners.second.first);
 	newCenter.first = boxmag / 2 + std::min(newCorners.first.second, newCorners.second.second);
 	
@@ -202,7 +198,8 @@ void pointSetter(vector<pair<coord, coord> > & thePoints, string & theString, fl
 	float x = 0;
 	float y = 0;
 	coord pos = std::make_pair(x, y);
-	std::stack<coord> storedPos;
+	std::stack<pair<coord,float> > storedPos;
+	pair < coord, float > posAngle;
 	pair < coord, coord > theLine;
 	coord temp;
 	float angle = 0;
@@ -231,11 +228,15 @@ void pointSetter(vector<pair<coord, coord> > & thePoints, string & theString, fl
 			angle += anglesize;
 			break;
 		case 6:		//Store Current Location and angle
-			storedPos.push(pos);
+			posAngle.first = pos;
+			posAngle.second = angle;
+			storedPos.push(posAngle);
 			break;
 		case 7:		//Restore Stored Location and angle
-			pos = storedPos.top();
+			posAngle = storedPos.top();
 			storedPos.pop();
+			pos = posAngle.first;
+			angle = posAngle.second;
 			break;
 		default:	//Rule construction, Bad Value
 			break;
@@ -322,46 +323,117 @@ void runGL()
 	glutMainLoop();
 }
 
-void init(int preset, float & anglesize, string & exrule, string & start)
+//This function initializes values to a preset list of functions
+void init(int preset, float & anglesize, string & exrule, string & start, int & iterations, string & description)
 {
 	switch (preset)
 	{
-		case 0:
+		case 0:	//Dragon Curve
 			exrule = "X:X+YF+;Y:-FX-Y;";
 			start = "FX";
-			anglesize = pi / 2;
+			anglesize = 90 * degree;
+			iterations = 12;
+			description = "Dragon Curve";
 			break;
-		case 1:
+		case 1:	//Tree/Fern thingy
 			exrule = "F:FF-[-F+F+F]+[+F-F-F];";
 			start = "F";
 			anglesize = 22 * degree;
+			iterations = 5;
+			description = "Vegetation 1";
 			break;
-		case 2:
+		case 2:	//Sierpinsky Hexagonal
+			exrule = "A:B-A-B;B:A+B+A;";
+			start = "A";
+			anglesize = 60 * degree;
+			iterations = 6;
+			description = "Sierpinsky Gasket 1";
+			break;
+		case 3:	//Sierpinsky Triangular
+			exrule = "F:F-E+F+E-F;E:EE";
+			start = "F-E-E";
+			anglesize = 120 * degree;
+			iterations = 6;
+			description = "Sierpinsky Gasket 2";
+			break;
+		case 4:	//Fractal Plant (Wikipedia)
+			exrule = "X:F-[[X]+X]+F[+FX]-X;F:FF;";
+			start = "XF";
+			anglesize = 25 * degree;
+			iterations = 3;
+			description = "Vegetation 2";
+			break;
+		case 5:	//Koch Curve
+			exrule = "F:F+F-F-F+F;";
+			start = "F";
+			anglesize = 90 * degree;
+			iterations = 4;
+			description = "Koch Curve";
+			break;
+		case 6:	//Pythagoras Tree
+			exrule = "B:BB;A:B[-A]+A;";
+			start = "A";
+			anglesize = 45 * degree;
+			iterations = 6;
+			description = "Pythagoras Tree";
+			break;
+		case 7:	//Snowflake
+			exrule = "F:F-F++F-F;X=FF;";
+			start = "F++F++F";
+			anglesize = 60 * degree;
+			iterations = 4;
+			description = "Snowflake 1";
+			break;
+		case 8:	//PentaSnowflake
+			exrule = "F:F-F++F+F-F-F;";
+			start = "F-F-F-F-F";
+			anglesize = 72 * degree;
+			iterations = 4;
+			description = "Snowflake 2";
+			break;
+		case 9:	//Hexagonal Gosper
+			exrule = "X:X+YF++YF-FX--FXFX-YF+;Y:-FX+YFYF++YF+FX--FX-Y;F:F";
+			start = "XF";
+			anglesize = 60 * degree;
+			iterations = 4;
+			description = "Hexagonal Gosper";
+			break;
+		case 10://Rings
+			exrule = "F:FF+F+F+F+F+F-F";
+			start = "F+F+F+F";
+			anglesize = 90 * degree;
+			iterations = 3;
+			description = "Rings";
+			break;
+		default: //Dragon Curve
 			exrule = "X:X+YF+;Y:-FX-Y;";
 			start = "FX";
-			anglesize = pi / 2;
-			break;
-		case 3:
-			exrule = "X:X+YF+;Y:-FX-Y;";
-			start = "FX";
-			anglesize = pi / 2;
-			break;
-		default:
-			exrule = "X:X+YF+;Y:-FX-Y;";
-			start = "FX";
-			anglesize = pi / 2;
+			anglesize = 90 * degree;
+			iterations = 12;
+			description = "Dragon Curve";
 			break;
 	}
 }
 
-
-
 int main(int argc, char *argv[])
 {
 	//Initial conditions
-	string exrule, start;
+	string exrule, start, description;
 	float anglesize;
-	init(1, anglesize, exrule, start);
+	int iterations, preset;
+	preset = 0;
+	
+	std::cout << "Enter the preset to be used.\n (A number between 0 and 10)\n";
+	std::cin >> preset;
+	if (preset < 0)
+		preset = 0;
+	init(preset, anglesize, exrule, start, iterations, description);
+	std::cout << "This preset is " << description << ".\n";
+	int tempit = iterations;
+	std::cout << "Enter the number of iterations. \n If zero, default of "<<tempit<<".\n";
+	std::cin >> iterations;
+	if (iterations <= 0)
+		iterations = tempit;
 
 	vector<pair<char, string> > ruleList;
 	ruleParser(exrule, ruleList);
@@ -372,8 +444,8 @@ int main(int argc, char *argv[])
 			std::cout << ruleList[i].first << " -> " << ruleList[i].second << "\n";
 		}
 	}
-	int iterations = 5;
 	string output = buildString(start, ruleList, iterations);
+
 	//std::cout << output << "\n";
 	pointSetter(points, output, anglesize);
 	pair<coord, coord> glCorners;
