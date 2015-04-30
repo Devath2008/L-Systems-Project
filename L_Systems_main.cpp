@@ -17,13 +17,27 @@
 using std::string;
 using std::vector;
 using std::pair;
-typedef pair<float, float> coord;
-vector<pair<coord, coord> > points;
+
+struct point
+{
+	float x, y;
+	float r, g, b;
+
+	point(float nx, float ny, float nr, float ng, float nb)
+		:x(nx), y(ny), r(nr), g(ng), b(nb)
+	{}
+
+	point()
+		:x(0.0), y(0.0), r(0.0), g(0.0), b(0.0)
+	{}
+};
+
+vector<pair<point,point> > points;
 
 //Centering Function. Finds the coordinates that are topmmost, bottommost, leftmost, and rightmost
 //Uses these values to create an equation that will extend the widest axis to the sides of the window
 //Should take into account if the window isn't square
-void justifyPoints(vector<pair<coord, coord> > & thePoints, pair<coord,coord> newCorners)
+void justifyPoints(vector<pair<point, point> > & thePoints, pair<point,point> newCorners)
 {
 	float bigx =	 -100000000000000;
 	float bigy =	 -100000000000000;
@@ -32,31 +46,31 @@ void justifyPoints(vector<pair<coord, coord> > & thePoints, pair<coord,coord> ne
 	for (int i = 0; i < thePoints.size(); i++)
 	{
 		//X coords in first and second
-		if (thePoints[i].first.first < smallx)
-			smallx = thePoints[i].first.first;
-		if (thePoints[i].first.first > bigx)
-			bigx = thePoints[i].first.first;
-		if (thePoints[i].second.first < smallx)
-			smallx = thePoints[i].second.first;
-		if (thePoints[i].second.first > bigx)
-			bigx = thePoints[i].second.first;
+		if (thePoints[i].first.x < smallx)
+			smallx = thePoints[i].first.x;
+		if (thePoints[i].first.x > bigx)
+			bigx = thePoints[i].first.x;
+		if (thePoints[i].second.x < smallx)
+			smallx = thePoints[i].second.x;
+		if (thePoints[i].second.x > bigx)
+			bigx = thePoints[i].second.x;
 		
 		//Y coords in first and second
-		if (thePoints[i].first.second < smally)
-			smally = thePoints[i].first.second;
-		if (thePoints[i].first.second > bigy)
-			bigy = thePoints[i].first.second;
-		if (thePoints[i].second.second < smally)
-			smally = thePoints[i].second.second;
-		if (thePoints[i].second.second > bigy)
-			bigy = thePoints[i].second.second;
+		if (thePoints[i].first.y < smally)
+			smally = thePoints[i].first.y;
+		if (thePoints[i].first.y > bigy)
+			bigy = thePoints[i].first.y;
+		if (thePoints[i].second.y < smally)
+			smally = thePoints[i].second.y;
+		if (thePoints[i].second.y > bigy)
+			bigy = thePoints[i].second.y;
 	}
 	
 	//Find the magnitudes of the edges of the old box and the new box
 	float xmag, ymag, boxmag;
 	xmag = std::abs(bigx - smallx);
 	ymag = std::abs(bigy - smally);
-	boxmag = std::abs(newCorners.first.first - newCorners.second.first);
+	boxmag = std::abs(newCorners.first.x - newCorners.second.x);
 	
 	//This is the size of the line length increment
 	float ratio = boxmag / (std::max(xmag, ymag)+4);
@@ -65,8 +79,8 @@ void justifyPoints(vector<pair<coord, coord> > & thePoints, pair<coord,coord> ne
 	pair<float, float> oldCenter, newCenter, offset;
 	oldCenter.first = xmag / 2 + smallx;
 	oldCenter.second = ymag / 2 + smally;
-	newCenter.first = boxmag / 2 + std::min(newCorners.first.first, newCorners.second.first);
-	newCenter.first = boxmag / 2 + std::min(newCorners.first.second, newCorners.second.second);
+	newCenter.first = boxmag / 2 + std::min(newCorners.first.x, newCorners.second.x);
+	newCenter.first = boxmag / 2 + std::min(newCorners.first.y, newCorners.second.y);
 	
 	//This is the amount that the values need to be adjusted by after dividing by ratio
 	offset.first = (oldCenter.first - newCenter.first) * ratio;
@@ -76,12 +90,14 @@ void justifyPoints(vector<pair<coord, coord> > & thePoints, pair<coord,coord> ne
 	for (int i = 0; i < thePoints.size(); i++)
 	{
 		float x1, y1, x2, y2;
-		x1 = thePoints[i].first.first * ratio - offset.first;
-		y1 = thePoints[i].first.second * ratio - offset.second;
-		x2 = thePoints[i].second.first * ratio - offset.first;
-		y2 = thePoints[i].second.second * ratio - offset.second;
-		thePoints[i].first = std::make_pair(x1, y1);
-		thePoints[i].second = std::make_pair(x2, y2);
+		x1 = thePoints[i].first.x * ratio - offset.first;
+		y1 = thePoints[i].first.y * ratio - offset.second;
+		x2 = thePoints[i].second.x * ratio - offset.first;
+		y2 = thePoints[i].second.y * ratio - offset.second;
+		thePoints[i].first.x = x1;
+		thePoints[i].first.y = y1;
+		thePoints[i].second.x = x2;
+		thePoints[i].second.y = y2;
 	}
 }
 
@@ -187,21 +203,110 @@ int actionValue(char theChar)
 		case ']':
 			return 7;
 			break;
+		case '1':
+			return 8;
+			break;
+		case '2':
+			return 8;
+			break;
+		case '3':
+			return 8;
+			break;
+		case '4':
+			return 8;
+			break;
+		case '5':
+			return 8;
+			break;
+		case '6':
+			return 8;
+			break;
+		case '7':
+			return 8;
+			break;
+		case '8':
+			return 8;
+			break;
+		case '9':
+			return 8;
+			break;
+		case '0':
+			return 8;
+			break;
 	}
 	return 0;
 }
 
+//This function sets the color of the point indicated based on the index of the color that is handed to it
+//The color presets are 1=Cyan, 2=Blue, 3=Red, 4=Purple, 5=Blue-Green, 6=White, 7=Dark Green, 8=Light Green, 9=Brown, 0=Orange
+void setColor(point & thepoint, char colorindex)
+{
+	switch (colorindex)
+	{
+	case '1': //Cyan
+		thepoint.r = 0.0;
+		thepoint.g = 1.0;
+		thepoint.b = 1.0;
+		break;
+	case '2': //Blue
+		thepoint.r = 0.0;
+		thepoint.g = 0.0;
+		thepoint.b = 1.0;
+		break;
+	case '3': //Red
+		thepoint.r = 1.0;
+		thepoint.g = 0.0;
+		thepoint.b = 0.0;
+		break;
+	case '4': //Purple 
+		thepoint.r = 1.0;
+		thepoint.g = 0.0;
+		thepoint.b = 1.0;
+		break;
+	case '5': //Blue-Green
+		thepoint.r = 0.0;
+		thepoint.g = 1.0;
+		thepoint.b = 0.4;
+		break;
+	case '6': //White
+		thepoint.r = 1.0;
+		thepoint.g = 1.0;
+		thepoint.b = 1.0;
+		break;
+	case '7': //Dark Green
+		thepoint.r = 0.1;
+		thepoint.g = 0.8;
+		thepoint.b = 0.3;
+		break;
+	case '8': //Light Green
+		thepoint.r = 0.3;
+		thepoint.g = 1.0;
+		thepoint.b = 0.3;
+		break;
+	case '9': //Brown
+		thepoint.r = 0.5;
+		thepoint.g = 0.35;
+		thepoint.b = 0.15;
+		break;
+	case '0': //Orange
+		thepoint.r = 1.0;
+		thepoint.g = 0.4;
+		thepoint.b = 0.0;
+		break;
+	}
+}
+
 //This function will take a string of characters and will create a list of coordinate pairs for line creating
 //This will operate with predetermined meanings for the characters in the sequence
-void pointSetter(vector<pair<coord, coord> > & thePoints, string & theString, float anglesize)
+void pointSetter(vector<pair<point, point> > & thePoints, string & theString, float anglesize)
 {
 	float x = 0;
 	float y = 0;
-	coord pos = std::make_pair(x, y);
-	std::stack<pair<coord,float> > storedPos;
-	pair < coord, float > posAngle;
-	pair < coord, coord > theLine;
-	coord temp;
+	point pos(x, y, 0, 0, 0);
+	std::stack<pair<point,float> > storedPos;
+	pair < point, float > posAngle;
+	pair < point, point > theLine;
+	point temp;
 	float angle = 0;
 	for (int i = 0; i < theString.size(); i++)
 	{
@@ -209,17 +314,22 @@ void pointSetter(vector<pair<coord, coord> > & thePoints, string & theString, fl
 		switch (action)
 		{
 		case 1:		//Draw Forward
-			x = cos(angle) + pos.first;
-			y = sin(angle) + pos.second;
-			temp = std::make_pair(x, y);
+			x = cos(angle) + pos.x;
+			y = sin(angle) + pos.y;
+			temp.x = x;
+			temp.y = y;
+			temp.r = pos.r;
+			temp.g = pos.g;
+			temp.b = pos.b;
 			theLine = std::make_pair(pos,temp);
 			pos = temp;
 			thePoints.push_back(theLine);
 			break;
 		case 2:		//Move Forward
-			x = cos(angle) + pos.first;
-			y = sin(angle) + pos.second;
-			pos = std::make_pair(x, y);
+			x = cos(angle) + pos.x;
+			y = sin(angle) + pos.x;
+			pos.x = x;
+			pos.y = y;
 			break;
 		case 4:		//Rotate Right
 			angle -= anglesize;
@@ -237,6 +347,9 @@ void pointSetter(vector<pair<coord, coord> > & thePoints, string & theString, fl
 			storedPos.pop();
 			pos = posAngle.first;
 			angle = posAngle.second;
+			break;
+		case 8:		//Sets the color of this and future segments
+			setColor(pos, theString[i]);
 			break;
 		default:	//Rule construction, Bad Value
 			break;
@@ -299,14 +412,14 @@ void renderFunc()
 {
 	glShadeModel(GL_SMOOTH);
 	//Sets background color
-	glClearColor(0.0, 0.8, 0.4, 0.0);
+	glClearColor(0.6, 0.6, 0.6, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	for (int i = 0; i < points.size(); i++)
 	{
 		glBegin(GL_LINES);
-		glColor3f(0.0, 0.0, 0.0);
-		glVertex2f(points[i].first.first,points[i].first.second);
-		glVertex2f(points[i].second.first,points[i].second.second);
+		glColor3f(points[i].first.r, points[i].first.g, points[i].first.b);
+		glVertex2f(points[i].first.x,points[i].first.y);
+		glVertex2f(points[i].second.x,points[i].second.y);
 		glEnd();
 	}
 	glutSwapBuffers();
@@ -336,7 +449,7 @@ void init(int preset, float & anglesize, string & exrule, string & start, int & 
 			description = "Dragon Curve";
 			break;
 		case 1:	//Tree/Fern thingy
-			exrule = "F:FF-[-F+F+F]+[+F-F-F];";
+			exrule = "F:9FF-[7-F+F+F]+[8+F-F-F];";
 			start = "F";
 			anglesize = 22 * degree;
 			iterations = 5;
@@ -448,9 +561,11 @@ int main(int argc, char *argv[])
 
 	//std::cout << output << "\n";
 	pointSetter(points, output, anglesize);
-	pair<coord, coord> glCorners;
-	glCorners.first = std::make_pair(-1, -1);
-	glCorners.second = std::make_pair(1, 1);
+	pair<point, point> glCorners;
+	glCorners.first.x = 1;
+	glCorners.first.y = 1;
+	glCorners.second.x = -1;
+	glCorners.second.y = -1;
 	justifyPoints(points, glCorners);
 	//Glut Display Function
 	glutInit(&argc, argv);
