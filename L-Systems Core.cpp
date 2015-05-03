@@ -49,19 +49,21 @@ void justifyPoints(vector<pair<point, point> > & thePoints, pair<point,point> ne
 	ymag = std::abs(bigy - smally);
 	boxmag = std::abs(newCorners.first.x - newCorners.second.x);
 	
+	float sidespace = 20.0;
+
 	//This is the size of the line length increment
-	float ratio = boxmag / (max(xmag, ymag)+4);
+	float ratio = boxmag / (max(xmag, ymag)+sidespace);
 
 	//Find the centers of the old box and the new box
 	pair<float, float> oldCenter, newCenter, offset;
-	oldCenter.first = xmag / 2 + smallx;
-	oldCenter.second = ymag / 2 + smally;
+	oldCenter.first = (xmag + sidespace) / 2 + smallx;
+	oldCenter.second = (ymag + sidespace) / 2 + smally;
 	newCenter.first = boxmag / 2 + min(newCorners.first.x, newCorners.second.x);
-	newCenter.first = boxmag / 2 + min(newCorners.first.y, newCorners.second.y);
+	newCenter.second = boxmag / 2 + min(newCorners.first.y, newCorners.second.y);
 	
 	//This is the amount that the values need to be adjusted by after dividing by ratio
-	offset.first = (oldCenter.first - newCenter.first) * ratio;
-	offset.second = (oldCenter.second - newCenter.second) * ratio;
+	offset.first = (oldCenter.first * ratio) - newCenter.first;
+	offset.second = (oldCenter.second * ratio) - newCenter.second;
 	
 	//Apply transformation to put everything between the new corner coordinates (Screenspace)
 	for (int i = 0; i < thePoints.size(); i++)
@@ -493,3 +495,4 @@ void init(int preset, float & anglesize, string & exrule, string & start, int & 
 			break;
 	}
 }
+

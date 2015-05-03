@@ -17,7 +17,9 @@
 #include <stack>		//std::stack
 #include <gl\glut.h>
 //This is the number of radians in one degree
+#ifndef degree
 #define degree 0.0174532925
+#endif	//degree
 using std::string;
 using std::vector;
 using std::pair;
@@ -67,8 +69,8 @@ void ruleParser(string & rules, vector<pair<char, string> > &  ruleList);
 //Rules are parsed into key-value pairs
 string buildString(string & start, vector<pair<char, string> > & rules, int & iterations);
 
-//3D OpenGl draw function for the map
-void glrenderFunc();
+//Used to draw in the Windows API
+void gdiRenderFunc(vector<pair<point, point> > & thePoints, HDC hdc);
 
 //This function initializes values to a preset list of functions
 void init(int preset, float & anglesize, string & exrule, string & start, int & iterations, string & description);

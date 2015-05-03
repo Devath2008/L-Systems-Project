@@ -164,7 +164,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	//Rules
 	rB = con.from_bytes(ruleBox);
 	TCHAR ruleTxt1[] = _T("Rule start w/ one char, then ':' then the transform, then ; between rules");
-	TCHAR ruleTxt2[] = _T("A–F : Draw forward; G–L : Move forward; M–Z : Used only in rule construction");
+	TCHAR ruleTxt2[] = _T("A to F : Draw forward; G to L : Move forward; M to Z : Used to shape only");
 	TCHAR ruleTxt3[] = _T("- + : Rotate left / right; [ ] : Push / Pop current position; 0-9 : Color Presets");
 	//Angle
 	angleBoxTxt = std::to_string(degreeAngle);
@@ -180,7 +180,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	pair<point, point> gdiCorners;
 	vector<pair<char, string> > ruleList;
 	string output;
-
 	switch (message)
 	{
 	case WM_CREATE:
@@ -197,7 +196,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		iterationsBox = CreateWindow(editableBoxType, iB.c_str(), WS_VISIBLE | WS_CHILD | WS_BORDER, 5, 265, 30, 20, hWnd, NULL, NULL, NULL);
 		//Draw button ititialize
 		drawButton = CreateWindow(buttonType, drawButtonText, WS_VISIBLE | WS_CHILD, 5, 315, 80, 20, hWnd, (HMENU)IDM_DRAWBUT, NULL, NULL);
-
 		break;
 	case WM_COMMAND:
 		wmId    = LOWORD(wParam);
@@ -228,14 +226,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			iterBox = std::to_string(iterations);
 			iB = con.from_bytes(iterBox);
 			SetWindowText(iterationsBox, iB.c_str());
-
+			
+			ruleList.clear();
+			points.clear();
+			
 			ruleParser(ruleBox, ruleList);
 			output = buildString(startStrBox, ruleList, iterations);
 			pointSetter(points, output, degreeAngle*degree);
 			gdiCorners.first.x = 500;
-			gdiCorners.first.y = 700;
+			gdiCorners.first.y = 0;
 			gdiCorners.second.x = 1200;
-			gdiCorners.second.y = 0;
+			gdiCorners.second.y = 700;
 			justifyPoints(points, gdiCorners);
 			InvalidateRect(hWnd, 0, TRUE);
 			break;
@@ -261,14 +262,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			iterBox = con.to_bytes(iB);
 			iterations = std::stoi(iterBox);
 			//make block into "run" function?
+			
 			ruleList.clear();
+			points.clear();
+
 			ruleParser(ruleBox, ruleList);
 			output = buildString(startStrBox, ruleList, iterations);
 			pointSetter(points, output, degreeAngle*degree);
 			gdiCorners.first.x = 500;
-			gdiCorners.first.y = 700;
+			gdiCorners.first.y = 0;
 			gdiCorners.second.x = 1200;
-			gdiCorners.second.y = 0;
+			gdiCorners.second.y = 700;
 			justifyPoints(points, gdiCorners);
 			InvalidateRect(hWnd, 0, TRUE);
 			break;
@@ -297,7 +301,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		TextOut(hdc, 5, 245, angleTxt, _tcslen(angleTxt));
 		//Iteration Text
 		TextOut(hdc, 5, 285, iterTxt, _tcslen(iterTxt));
-		//gdiRenderFunc(points,hdc);
+		
+		//Draw nonsense
+		HPEN hPenOld;
+		HPEN hLinePen;
+		COLORREF color;
+		for (int i = 0; i < points.size(); i++)
+		{
+			color = RGB(points[i].first.r * 255, points[i].first.g * 255, points[i].first.b * 255);
+			hLinePen = CreatePen(PS_SOLID, 1, color);
+			hPenOld = (HPEN)SelectObject(hdc, hLinePen);
+			MoveToEx(hdc, points[i].first.x, points[i].first.y, NULL);
+			LineTo(hdc, points[i].second.x, points[i].second.y);
+			SelectObject(hdc, hPenOld);
+			DeleteObject(hLinePen);
+		}
+
 		EndPaint(hWnd, &ps);
 		break;
 	case WM_DESTROY:
