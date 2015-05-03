@@ -387,23 +387,6 @@ string buildString(string & start, vector<pair<char, string> > & rules, int & it
 	return built;
 }
 
-void gdiRenderFunc(vector<pair<point, point> > & thePoints, HDC hdc)
-{
-	HPEN hPenOld;
-	HPEN hLinePen;
-	COLORREF color;
-	for (int i = 0; i < thePoints.size(); i++)
-	{
-		color = RGB(thePoints[i].first.r * 255, thePoints[i].first.r * 255, thePoints[i].first.r * 255);
-		hLinePen = CreatePen(PS_SOLID, 1, color);
-		hPenOld = (HPEN)SelectObject(hdc, hLinePen);
-		MoveToEx(hdc,thePoints[i].first.x,thePoints[i].first.y, NULL);
-		LineTo(hdc,thePoints[i].second.x,thePoints[i].second.y);
-		SelectObject(hdc, hPenOld);
-		DeleteObject(hLinePen);
-	}
-}
-
 //This function initializes values to a preset list of functions
 void init(int preset, float & anglesize, string & exrule, string & start, int & iterations, string & description)
 {

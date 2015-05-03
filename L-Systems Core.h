@@ -69,9 +69,6 @@ void ruleParser(string & rules, vector<pair<char, string> > &  ruleList);
 //Rules are parsed into key-value pairs
 string buildString(string & start, vector<pair<char, string> > & rules, int & iterations);
 
-//Used to draw in the Windows API
-void gdiRenderFunc(vector<pair<point, point> > & thePoints, HDC hdc);
-
 //This function initializes values to a preset list of functions
 void init(int preset, float & anglesize, string & exrule, string & start, int & iterations, string & description);
 
